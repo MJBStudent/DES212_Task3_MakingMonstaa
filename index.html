@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Making Monstaa — Video Gallery</title>
+  <style>
+    :root{--gap:18px;--max:1100px;--bg:#fff;--fg:#111}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--fg)}
+    .wrap{max-width:var(--max);margin:28px auto;padding:18px}
+    h1{margin:0 0 12px;font-size:1.4rem}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--gap)}
+    .card{background:#f7f7f7;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;align-items:stretch}
+    .preview{width:100%;height:auto;background:#000;display:block;object-fit:contain;max-height:60vh;border:0}
+    .meta{padding:10px 12px;font-size:0.95rem;display:flex;justify-content:space-between;align-items:center;gap:8px}
+    button{background:#111;color:#fff;border:0;padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:600}
+    .small{font-size:0.86rem;color:#0066cc;text-decoration:none}
+    /* fullscreen viewer */
+    .fs{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,0.92);z-index:999}
+    .fs.show{display:grid}
+    .fs video{max-width:95%;max-height:95%}
+    .fs .close{position:absolute;right:18px;top:18px;color:#fff;font-weight:700;cursor:pointer}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Making Monstaa — Video Gallery</h1>
+      <p class="lead">Tap to open, videos lazy-load when scrolled into view.</p>
+    </header>
+
+    <section class="grid" id="gallery">
+      <!-- Lampiee -->
+      <article class="card">
+        <video class="preview" data-webm="" data-mp4="media/lampiee/lampiee.mp4" muted loop playsinline preload="metadata" poster="media/lampiee/poster.jpg" aria-label="Lampiee preview"></video>
+        <div class="meta">
+          <strong>Lampiee</strong>
+          <div>
+            <button class="toggle">Pause</button>
+            <a class="small" href="media/lampiee/" target="_blank" rel="noopener">folder</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Snailee -->
+      <article class="card">
+        <video class="preview" data-webm="" data-mp4="media/snailee/snailee.mp4" muted loop playsinline preload="metadata" poster="media/snailee/poster.jpg" aria-label="Snailee preview"></video>
+        <div class="meta">
+          <strong>Snailee</strong>
+          <div>
+            <button class="toggle">Pause</button>
+            <a class="small" href="media/snailee/" target="_blank" rel="noopener">folder</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Monkiee -->
+      <article class="card">
+        <video class="preview" data-webm="" data-mp4="media/monkiee/monkiee.mp4" muted loop playsinline preload="metadata" poster="media/monkiee/poster.jpg" aria-label="Monkiee preview"></video>
+        <div class="meta">
+          <strong>Monkiee</strong>
+          <div>
+            <button class="toggle">Pause</button>
+            <a class="small" href="media/monkiee/" target="_blank" rel="noopener">folder</a>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <!-- fullscreen viewer -->
+  <div id="fs" class="fs" role="dialog" aria-hidden="true">
+    <div class="close" id="fsClose" aria-label="Close">✕</div>
+    <video id="fsVideo" controls playsinline></video>
+  </div>
+
+  <script>
+    // Lazy-load MP4 sources and minimal controls
+    document.addEventListener('DOMContentLoaded', () => {
+      const videos = Array.from(document.querySelectorAll('video.preview'));
+      const fs = document.getElementById('fs');
+      const fsVideo = document.getElementById('fsVideo');
+      const fsClose = document.getElementById('fsClose');
+
+      // IntersectionObserver for lazy loading
+      const io = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          const vid = entry.target;
+          if (!vid.querySelector('source')) {
+            // prefer MP4 (you can add WebM variant to data-webm if available)
+            const mp4 = vid.dataset.mp4;
+            if (mp4) {
+              const s = document.createElement('source');
+              s.src = mp4;
+              s.type = 'video/mp4';
+              vid.appendChild(s);
+            }
+            vid.load();
+            vid.play().catch(()=>{ /* autoplay may be blocked; user can tap */ });
+          }
+          obs.unobserve(vid);
+        });
+      }, {rootMargin: '200px'});
+
+      videos.forEach(v => io.observe(v));
+
+      // play/pause toggles for each card
+      document.querySelectorAll('button.toggle').forEach((btn, i) => {
+        const vid = videos[i];
+        btn.addEventListener('click', () => {
+          if (vid.paused) {
+            vid.play(); btn.textContent = 'Pause';
+          } else {
+            vid.pause(); btn.textContent = 'Play';
+          }
+        });
+        // click video to open fullscreen viewer (useful on touch)
+        vid.addEventListener('click', () => {
+          // copy current src into fsVideo and play
+          const src = vid.querySelector('source')?.src;
+          if (!src) return;
+          fsVideo.src = src;
+          fs.classList.add('show');
+          fs.setAttribute('aria-hidden','false');
+          fsVideo.play().catch(()=>{});
+        });
+      });
+
+      // fullscreen close
+      fsClose.addEventListener('click', () => {
+        fs.classList.remove('show');
+        fs.setAttribute('aria-hidden','true');
+        fsVideo.pause();
+        fsVideo.removeAttribute('src');
+      });
+      fs.addEventListener('click', (e) => { if (e.target === fs) fsClose.click(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && fs.classList.contains('show')) fsClose.click(); });
+    });
+  </script>
+</body>
+</html>
