@@ -14,7 +14,6 @@
     .card{background:#f7f7f7;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;align-items:stretch}
     .preview{width:100%;height:auto;background:#000;display:block;object-fit:contain;max-height:60vh;border:0}
     .meta{padding:10px 12px;font-size:0.95rem;display:flex;justify-content:space-between;align-items:center;gap:8px}
-    button{background:#111;color:#fff;border:0;padding:8px 10px;border-radius:6px;cursor:pointer;font-weight:600}
     .small{font-size:0.86rem;color:#0066cc;text-decoration:none}
     /* fullscreen viewer */
     .fs{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,0.92);z-index:999}
@@ -36,10 +35,7 @@
         <video class="preview" data-webm="" data-mp4="media/lampiee.mp4" muted loop playsinline preload="metadata" poster="media/lampiee/poster.jpg" aria-label="Lampiee preview"></video>
         <div class="meta">
           <strong>Lampiee</strong>
-          <div>
-            <button class="toggle">Pause</button>
-            <a class="small" href="media/lampiee/" target="_blank" rel="noopener">folder</a>
-          </div>
+          <a class="small" href="media/lampiee/" target="_blank" rel="noopener">folder</a>
         </div>
       </article>
 
@@ -48,10 +44,7 @@
         <video class="preview" data-webm="" data-mp4="media/snailee.mp4" muted loop playsinline preload="metadata" poster="media/snailee/poster.jpg" aria-label="Snailee preview"></video>
         <div class="meta">
           <strong>Snailee</strong>
-          <div>
-            <button class="toggle">Pause</button>
-            <a class="small" href="media/snailee/" target="_blank" rel="noopener">folder</a>
-          </div>
+          <a class="small" href="media/snailee/" target="_blank" rel="noopener">folder</a>
         </div>
       </article>
 
@@ -60,10 +53,7 @@
         <video class="preview" data-webm="" data-mp4="media/monkiee.mp4" muted loop playsinline preload="metadata" poster="media/monkiee/poster.jpg" aria-label="Monkiee preview"></video>
         <div class="meta">
           <strong>Monkiee</strong>
-          <div>
-            <button class="toggle">Pause</button>
-            <a class="small" href="media/monkiee/" target="_blank" rel="noopener">folder</a>
-          </div>
+          <a class="small" href="media/monkiee/" target="_blank" rel="noopener">folder</a>
         </div>
       </article>
     </section>
@@ -106,17 +96,8 @@
 
       videos.forEach(v => io.observe(v));
 
-      // play/pause toggles for each card
-      document.querySelectorAll('button.toggle').forEach((btn, i) => {
-        const vid = videos[i];
-        btn.addEventListener('click', () => {
-          if (vid.paused) {
-            vid.play(); btn.textContent = 'Pause';
-          } else {
-            vid.pause(); btn.textContent = 'Play';
-          }
-        });
-        // click video to open fullscreen viewer (useful on touch)
+      // click video to open fullscreen viewer (useful on touch)
+      videos.forEach(vid => {
         vid.addEventListener('click', () => {
           // copy current src into fsVideo and play
           const src = vid.querySelector('source')?.src;
